@@ -19,14 +19,6 @@ class LinkedDataAPI:
         self.data_endpoint = data_endpoint
         self.query = query
 
-    def set_data_endpoint(self, data_endpoint):
-        """Set the data endpoint of the Linked Data API."""
-        self.data_endpoint = data_endpoint
-
-    def set_query(self, query):
-        """Set the query to be sent to the Linked Data API."""
-        self.query = query
-
     def fetch_data(self):
         """Fetch data from the Linked Data API."""
         response = self.client.post(self.data_endpoint, data={'query': self.query}, timeout=None)

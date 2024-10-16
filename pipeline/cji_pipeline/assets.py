@@ -11,10 +11,6 @@ def all_infras_file(context):
     """
     linked_data_api = context.resources.linked_data_api
 
-    # Set the endpoint and query for the API
-    linked_data_api.set_data_endpoint(linked_data_api.data_endpoint)
-    linked_data_api.set_query(linked_data_api.query)
-
     # Fetch the data and transform it into a DataFrame
     df = linked_data_api.fetch_data()
 
