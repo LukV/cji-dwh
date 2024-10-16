@@ -1,0 +1,49 @@
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX infra: <https://data.vlaanderen.be/ns/cultuur-en-jeugd/infrastructuur#>
+PREFIX adms: <http://www.w3.org/ns/adms#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX dct: <http://purl.org/dc/terms/>
+PREFIX generiek: <https://data.vlaanderen.be/ns/generiek#>
+PREFIX platform: <https://data.uitwisselingsplatform.be/ns/platform#>
+PREFIX locn: <http://www.w3.org/ns/locn#>
+PREFIX gebouw: <https://data.vlaanderen.be/ns/gebouw#>
+
+SELECT ?subject ?locationName ?locationType ?thoroughfare ?huisnummer
+    ?fullAddress ?postCode ?city ?gml ?point ?bron
+    ?infraType ?createdBy ?identifier ?localid ?namespace ?adresregisteruri
+WHERE {    
+    GRAPH <https://data.vlaanderen.be/ns/cultuur-en-jeugd/infrastructuur#all-infrastructures> {
+        ?subject 
+            a ?infraType ;
+            adms:Identifier ?identifierNode ;
+            locn:geometry ?geo ;
+            infra:Infrastructuur.naam ?locationName ;
+            infra:Infrastructuur.type ?locationType .
+        
+        OPTIONAL { ?subject rdfs:seeAlso ?adresregisteruri . }
+        OPTIONAL { ?geo locn:point ?point . }
+        OPTIONAL { ?geo locn:gml ?gml . }
+
+        ?identifierNode 
+            skos:notation ?identifier ;
+            generiek:gestructureerdeIdentificator ?gident ;
+            platform:bron ?bron .
+
+        OPTIONAL { ?identifierNode dct:creator ?createdBy . }
+
+        OPTIONAL {
+            ?subject gebouw:adres ?addressNode .
+            ?addressNode 
+                locn:fullAddress ?fullAddress ;
+                locn:thoroughfare ?thoroughfare ;  
+                locn:locatorDesignator ?huisnummer ; 
+                locn:postCode ?postCode ;
+                locn:postName ?city .
+        }
+
+        ?gident
+            generiek:lokaleIdentificator ?localid ;
+            generiek:naamruimte ?namespace .
+    }
+}

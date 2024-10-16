@@ -1,0 +1,10 @@
+[32m2024-10-16 22:29:17 +0200[0m - dagster - [34mDEBUG[0m - __ASSET_JOB - 2af875e2-cfcf-4747-9c99-29af065c2b46 - 69077 - LOGS_CAPTURED - Started capturing logs in process (pid: 69077).
+[32m2024-10-16 22:29:17 +0200[0m - dagster - [34mDEBUG[0m - __ASSET_JOB - 2af875e2-cfcf-4747-9c99-29af065c2b46 - 69077 - all_infras_file - STEP_START - Started execution of step "all_infras_file".
+/Users/lukv/Documents/Code/Python/cji-dwh/pipeline/cji_pipeline/resources.py:38: FutureWarning: DataFrame.applymap has been deprecated. Use DataFrame.map instead.
+  return df.applymap(lambda x: x['value'] if isinstance(x, dict) else x)
+[32m2024-10-16 22:29:21 +0200[0m - dagster - [34mINFO[0m - __ASSET_JOB - 2af875e2-cfcf-4747-9c99-29af065c2b46 - all_infras_file - Saved 14331 results as Parquet: all_infras.parquet
+[32m2024-10-16 22:29:21 +0200[0m - dagster - [34mDEBUG[0m - __ASSET_JOB - 2af875e2-cfcf-4747-9c99-29af065c2b46 - 69077 - all_infras_file - STEP_OUTPUT - Yielded output "result" of type "Any". (Type check passed).
+[32m2024-10-16 22:29:21 +0200[0m - dagster - [34mDEBUG[0m - __ASSET_JOB - 2af875e2-cfcf-4747-9c99-29af065c2b46 - all_infras_file - Writing file at: /Users/lukv/Documents/Code/Python/cji-dwh/pipeline/tmp_miwflxz/storage/all_infras_file using PickledObjectFilesystemIOManager...
+[32m2024-10-16 22:29:21 +0200[0m - dagster - [34mDEBUG[0m - __ASSET_JOB - 2af875e2-cfcf-4747-9c99-29af065c2b46 - 69077 - all_infras_file - ASSET_MATERIALIZATION - Materialized value all_infras_file.
+[32m2024-10-16 22:29:21 +0200[0m - dagster - [34mDEBUG[0m - __ASSET_JOB - 2af875e2-cfcf-4747-9c99-29af065c2b46 - 69077 - all_infras_file - HANDLED_OUTPUT - Handled output "result" using IO manager "io_manager"
+[32m2024-10-16 22:29:21 +0200[0m - dagster - [34mDEBUG[0m - __ASSET_JOB - 2af875e2-cfcf-4747-9c99-29af065c2b46 - 69077 - all_infras_file - STEP_SUCCESS - Finished execution of step "all_infras_file" in 3.79s.

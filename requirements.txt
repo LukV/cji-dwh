@@ -7,3 +7,5 @@ fastapi
 uvicorn
 polars
 streamlit
+authlib
+httpx
