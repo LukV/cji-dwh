@@ -1,6 +1,11 @@
-from dagster import resource
+from dagster import resource, EnvVar
+from dagster_duckdb import DuckDBResource
 from pandas import DataFrame
 from authlib.integrations.httpx_client import OAuth2Client
+
+database_resource = DuckDBResource(
+    database=EnvVar("DUCKDB_DATABASE")
+)
 
 class LinkedDataAPI:
     """

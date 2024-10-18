@@ -10,6 +10,9 @@ __pycache__/
 # Ignore database and data files
 data/*
 
+# Ignore all directories that start with tmp
+*/tmp*
+
 # Ignore OS-specific files
 .DS_Store
 Thumbs.db
