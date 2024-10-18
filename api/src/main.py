@@ -1,14 +1,10 @@
-import json
 from fastapi import FastAPI
+from .routers import infrastructure
 
-app = FastAPI()
+app = FastAPI(
+    title="Infrastructure API",
+    description="API for accessing infrastructure data from a read-only DuckDB table.",
+    version="1.0.0"
+)
 
-@app.get("/data")
-def read_data():
-    # Open and read the JSON file containing the array
-    with open("../data/topstory_ids.json", "r") as file:
-        data = json.load(file)  # Read the JSON array directly into a Python list
-    
-    # Return the list as JSON response
-    return data
-
+app.include_router(infrastructure.router, prefix="/api", tags=["infrastructures"])
