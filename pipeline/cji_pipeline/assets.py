@@ -8,8 +8,7 @@ import pyarrow.parquet as pq
 @asset(required_resource_keys={"linked_data_api"},)
 def all_infras_file(context):
     """
-    Fetches all infrastructures RDF data from UiTwisselingsplatform
-    and saves the results as a Parquet file.
+    Raw infrastructure data as fetched from UiTwisselingsplatform.
     """
     linked_data_api = context.resources.linked_data_api
     df = linked_data_api.fetch_data()
@@ -24,13 +23,41 @@ def all_infras_file(context):
 @asset(deps=["all_infras_file"])
 def all_infras_table(database: DuckDBResource):
     """
-    Copies data from the Parquet file into DuckDB.
+    Cleaned infrastructure data in DuckDB with an ID and human readable labels.
     """
     sql_query = """
-        create or replace table all_infras as (
-          select *
-          from '../data/all_infras.parquet'
-        );
+        CREATE OR REPLACE TEMPORARY TABLE temp_data AS 
+        SELECT 
+            locationName AS location_name,
+            locationType AS location_type_uri,
+            infraType AS infra_type_uri,
+            thoroughfare AS street,
+            huisnummer AS house_number,
+            postCode AS postal_code,
+            city, 
+            bron as uwp_source_dp,
+            createdBy AS created_by,
+            subject AS source_uri,
+            adresregisteruri AS adresregister_uri,
+            CASE
+                WHEN namespace = 'https://kampas.be/id/gebouw/' THEN 'Kampas'
+                WHEN namespace = 'https://erfgoedkaart.be/id/infrastructuur/' THEN 'Erfgoedkaart'
+                WHEN namespace = 'https://data.publiq.be/id/place/udb/' THEN 'UiTdatabank'
+                WHEN namespace = 'https://terra.be/id/infrastructuur/' THEN 'Terra'
+                WHEN namespace = 'https://www.jeugdmaps.be/id/buitenruimte/' THEN 'Jeugdmaps'
+                WHEN namespace = 'https://natuurenbos.vlaanderen.be/id/buitenruimte/' THEN 'Natuur en bos'
+                WHEN namespace = 'https://www.jeugdmaps.be/id/gebouw/' THEN 'Jeugdmaps'
+                ELSE NULL
+            END AS source_system,
+            identifier,
+            localid,
+            namespace,
+            point, 
+            gml,
+        FROM '../data/all_infras.parquet';
+
+        CREATE OR REPLACE TABLE all_infras AS
+        SELECT row_number() OVER () AS id, * FROM temp_data;
     """
 
     with database.get_connection() as conn:
