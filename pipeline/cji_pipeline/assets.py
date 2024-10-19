@@ -1,7 +1,9 @@
 import os
-import duckdb
+import re
+from titlecase import titlecase
 from dagster_duckdb import DuckDBResource
 from dagster import asset
+from duckdb.typing import VARCHAR
 import pyarrow as pa
 import pyarrow.parquet as pq
 
@@ -25,11 +27,24 @@ def all_infras_table(database: DuckDBResource):
     """
     Cleaned infrastructure data in DuckDB with an ID and human readable labels.
     """
+    def split_camel_case(value):
+        """
+        Reformat input string e.g. 
+        http://infrastructuur.dcjm.be/id/type#jeugdverblijfOfJeugdhostel to Jeugdverblijf Of Jeugdhostel
+        """
+        if value and "#" in value:
+            value = value.split("#")[-1]
+            value = re.sub(r'(?<!^)([A-Z])', r' \1', value)
+            value = titlecase(value.lower())
+        
+        return value
+        
     sql_query = """
         CREATE OR REPLACE TEMPORARY TABLE temp_data AS 
         SELECT 
             locationName AS location_name,
             locationType AS location_type_uri,
+            split_camel_case(locationType) AS location_type_label,
             infraType AS infra_type_uri,
             thoroughfare AS street,
             huisnummer AS house_number,
@@ -61,4 +76,5 @@ def all_infras_table(database: DuckDBResource):
     """
 
     with database.get_connection() as conn:
+        conn.create_function('split_camel_case', split_camel_case, [(VARCHAR)], VARCHAR)
         conn.execute(sql_query)

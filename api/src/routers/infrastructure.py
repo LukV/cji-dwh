@@ -4,9 +4,15 @@ from ..schemas.infrastructure import InfraList, InfraDetail, InfraBase
 
 router = APIRouter()
 
+ALL_COLS = ["id", "location_name", "location_type_uri", "location_type_label", "infra_type_uri",
+            "street", "house_number", "postal_code", "city", "uwp_sourcd_dp", "created_by",
+            "source_uri", "adresregister_uri", "source_system", "identifier", "localid", 
+            "namespace", "point", "gml"]
+
 @router.get("/infras", response_model=InfraList)
 def read_infras(limit: int = Query(10, ge=1, description="The number of records to retrieve"),
-                offset: int = Query(0, ge=0, description="The number of records to skip before starting to return records")):
+                offset: int = Query(0, ge=0,
+                    description="The number of records to skip before starting to return records")):
     """
     Retrieve a paginated list of infrastructure records.
 
@@ -24,12 +30,9 @@ def read_infras(limit: int = Query(10, ge=1, description="The number of records 
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="No infrastructure records found."
             )
-        
+
         # Convert each tuple row into an InfraBase instance using dictionary unpacking
-        items = [InfraBase(**dict(zip(["subject", "locationName", "locationType", "gml", "bron",
-                                       "infraType", "createdBy", "identifier", "localid", "namespace",
-                                       "thoroughfare", "huisnummer", "fullAddress", "postCode", 
-                                       "city", "point", "adresregisteruri"], row)))
+        items = [InfraBase(**dict(zip(ALL_COLS, row)))
                  for row in rows]
 
         total = len(items)
@@ -59,14 +62,11 @@ def read_infra(identifier: str):
         if row is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Infrastructure with identifier '{identifier}' not found."
+                detail=f"Infrastructure with id '{identifier}' not found."
             )
-        
+
         # Convert tuple to InfraDetail using dictionary unpacking
-        infra = InfraDetail(**dict(zip(["subject", "locationName", "locationType", "gml", "bron",
-                                        "infraType", "createdBy", "identifier", "localid", "namespace",
-                                        "thoroughfare", "huisnummer", "fullAddress", "postCode", 
-                                        "city", "point", "adresregisteruri"], row)))
+        infra = InfraDetail(**dict(zip(ALL_COLS, row)))
         return infra
 
     except HTTPException as http_exc:
@@ -77,5 +77,6 @@ def read_infra(identifier: str):
         # Log the exception if necessary and return a 500 status code with a generic error message
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"An unexpected error occurred while retrieving the infrastructure record with identifier '{identifier}'."
+            detail=f"An unexpected error occurred while retrieving \
+                    the infrastructure record with id '{identifier}'."
         ) from e

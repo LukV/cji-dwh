@@ -27,5 +27,5 @@ def get_infra_detail(identifier: str) -> Tuple:
         Tuple: A tuple representing the infrastructure record or None if not found.
     """
     conn = get_db_connection()
-    query = "SELECT * FROM all_infras WHERE identifier = ?"
+    query = "SELECT * FROM all_infras WHERE id = ?"
     return conn.execute(query, (identifier,)).fetchone()

@@ -12,3 +12,4 @@ polars
 streamlit
 authlib
 httpx
+titlecase==2.4.1
