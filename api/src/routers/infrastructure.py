@@ -1,3 +1,4 @@
+from typing import Optional
 from fastapi import APIRouter, HTTPException, Query, status
 from ..db import crud
 from ..schemas.infrastructure import InfraList, InfraDetail, InfraBase
@@ -10,40 +11,57 @@ ALL_COLS = ["id", "location_name", "location_type_uri", "location_type_label", "
             "namespace", "point", "gml"]
 
 @router.get("/infras", response_model=InfraList)
-def read_infras(limit: int = Query(10, ge=1, description="The number of records to retrieve"),
-                offset: int = Query(0, ge=0,
-                    description="The number of records to skip before starting to return records")):
+def read_infras(
+        limit: int = Query(10, ge=1, description="The number of records to retrieve"),
+        offset: int = Query(0, ge=0, description="The number of records to skip \
+                                    before starting to return records"),
+        filters: Optional[str] = Query(None, description="Boolean logic filter to filter \
+                                    results by (e.g., 'city=Sint-Huibrechts-Lille AND \
+                                    infra_type_uri=https://data.vlaanderen.be/ns/gebouw#Gebouw')"),
+        sort_by: Optional[str] = Query("id", description="The column to sort by"),
+        sort_order: Optional[str] = Query("asc", regex="^(asc|desc)$", description="Sort \
+                                    order: 'asc' or 'desc'")):
     """
-    Retrieve a paginated list of infrastructure records.
+    Retrieve a paginated list of infrastructure records with filtering and sorting.
 
     Args:
         limit (int): The maximum number of records to return.
         offset (int): The number of records to skip before starting to return records.
+        filters (str): Boolean logic filter to filter the records by.
+        sort_by (str): The column to sort by.
+        sort_order (str): Sort order, either ascending ('asc') or descending ('desc').
 
     Returns:
         InfraList: A list of infrastructure records with pagination details.
     """
-    try:
-        rows = crud.get_infras(limit=limit, offset=offset)
-        if not rows:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="No infrastructure records found."
-            )
-
-        # Convert each tuple row into an InfraBase instance using dictionary unpacking
-        items = [InfraBase(**dict(zip(ALL_COLS, row)))
-                 for row in rows]
-
-        total = len(items)
-        return InfraList(items=items, total=total, limit=limit, offset=offset)
-
-    except Exception as e:
-        # Log the exception if necessary and return a 500 status code with a generic error message
+    # Ensure sort_by is a valid column
+    if sort_by not in ALL_COLS:
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="An unexpected error occurred while retrieving the infrastructure records."
-        ) from e
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid sort_by parameter. Must be one of: {', '.join(ALL_COLS)}"
+        )
+
+    rows = crud.get_infras(
+        limit=limit,
+        offset=offset,
+        filters=filters,
+        sort_by=sort_by,
+        sort_order=sort_order
+    )
+
+    if not rows:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No infrastructure records found."
+        )
+
+    # Convert each tuple row into an InfraBase instance using dictionary unpacking
+    items = [InfraBase(**dict(zip(ALL_COLS, row)))
+                for row in rows]
+
+    total = len(items)
+    return InfraList(items=items, total=total, limit=limit, offset=offset)
+
 
 
 @router.get("/infras/{identifier}", response_model=InfraDetail)
