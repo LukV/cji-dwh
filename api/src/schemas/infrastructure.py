@@ -2,9 +2,6 @@ from typing import Optional
 from pydantic import BaseModel
 
 class InfraBase(BaseModel):
-    """
-    Base model representing infrastructure details.
-    """
     id: int
     location_name: Optional[str] = "De Bosuil"
     location_type_uri: Optional[str] = "http://infrastructuur.dcjm.be/id/type#jeugdverblijfOfJeugdhostel"
@@ -26,16 +23,9 @@ class InfraBase(BaseModel):
     gml: Optional[str] = None
 
 class InfraDetail(InfraBase):
-    """
-    Model representing detailed information about an infrastructure.
-    Inherits from InfraBase.
-    """
     pass
 
 class InfraList(BaseModel):
-    """
-    Model representing a list of infrastructures with pagination information.
-    """
     items: list[InfraBase]
     total: int = 1
     limit: int = 10
