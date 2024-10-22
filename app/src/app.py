@@ -1,6 +1,7 @@
+import re
+import os
 import streamlit as st
 import pandas as pd
-import re
 import requests
 from streamlit_folium import st_folium
 from pyproj import Transformer
@@ -8,16 +9,16 @@ import folium
 from folium.plugins import MarkerCluster
 
 # Constants
-API_BASE_URL = "http://localhost:8000/api/infras"
+API_BASE_URL = os.getenv("API_BASE_URL", "http://localhost:8000/api/infras")
 PAGE_LENGTH = 20000
 MAX_DISPLAY_RECORDS = 1000
 
 # Set the wide layout as default
 st.set_page_config(layout="wide")
 
-# Function to fetch data from the API
 @st.cache_data
 def fetch_data(limit=10, offset=0, filters=None, sort_by="location_name", sort_order="asc"):
+    """Fetch data from the API"""
     params = {
         "limit": limit,
         "offset": offset,
@@ -33,12 +34,16 @@ def fetch_data(limit=10, offset=0, filters=None, sort_by="location_name", sort_o
         st.error(f"Failed to fetch data: {response.status_code}")
         return None
 
-# Function to filter the DataFrame based on sidebar filters
+
 def apply_filters(df):
+    """Filter the DataFrame based on sidebar filters"""
     location_name_filter = st.sidebar.text_input("Zoek op naam")
-    source_system_filter = st.sidebar.multiselect("Filter op bron", options=df["Bronsysteem"].dropna().unique().tolist())
-    location_type_filter = st.sidebar.multiselect("Filter op type", options=df["Locatietype"].dropna().unique().tolist())
-    city_filter = st.sidebar.multiselect("Filter op gemeente", options=df["Gemeente"].dropna().unique().tolist())
+    source_system_filter = st.sidebar.multiselect("Filter op bron",
+                                        options=df["Bronsysteem"].dropna().unique().tolist())
+    location_type_filter = st.sidebar.multiselect("Filter op type",
+                                        options=df["Locatietype"].dropna().unique().tolist())
+    city_filter = st.sidebar.multiselect("Filter op gemeente",
+                                        options=df["Gemeente"].dropna().unique().tolist())
 
     if location_name_filter:
         df = df[df["Locatienaam"].str.contains(location_name_filter, case=False, na=False)]
@@ -51,12 +56,12 @@ def apply_filters(df):
 
     return df
 
-# Function to create the table view
 def display_table_view(df):
+    """Create the table view."""
     st.write(df)
 
-# Function to create the chart view
 def display_chart_view(df):
+    """Create the chart view."""
     if not df.empty:
         col1, col2 = st.columns(2)
 
@@ -72,8 +77,8 @@ def display_chart_view(df):
     else:
         st.write("Geen gegevens beschikbaar om de grafieken weer te geven.")
 
-# Function to create the map view
 def display_map_view(df):
+    """Create the map view."""
     # Limit the number of records to a maximum of 500 for map visualization
     df_map = df.head(MAX_DISPLAY_RECORDS)
 
@@ -93,7 +98,8 @@ def display_map_view(df):
             match = re.search(r"<gml:posList>([-\d. ]+)</gml:posList>", item["gml"])
             if match:
                 coord_list = list(map(float, match.group(1).split()))
-                coordinates = [(coord_list[i], coord_list[i + 1]) for i in range(0, len(coord_list), 2)]
+                coordinates = [(coord_list[i], coord_list[i + 1]) \
+                               for i in range(0, len(coord_list), 2)]
                 converted_coords = [transformer.transform(x, y) for x, y in coordinates]
 
                 folium.Polygon(
@@ -121,11 +127,11 @@ def display_map_view(df):
     # Display the map in Streamlit
     st_folium(m, width=1600, height=600)
 
-    #
+    # Display maximum number of results on map.
     st.write(f"Maximum aantal resultaten op kaart: {MAX_DISPLAY_RECORDS}")
 
-# Main application logic
 def main():
+    """Main application logic."""
     # Fetch data
     data = fetch_data(limit=PAGE_LENGTH, offset=0, sort_by="location_name", sort_order="asc")
 
@@ -151,7 +157,8 @@ def main():
         df_filtered = apply_filters(df)
 
         # Sidebar view selection
-        view = st.sidebar.radio("Kies weergave", ["Tabelweergave", "Kaartweergave", "Grafiekenweergave"])
+        view = st.sidebar.radio("Kies weergave",
+                                ["Tabelweergave", "Kaartweergave", "Grafiekenweergave"])
 
         # Streamlit UI Title and Result Summary
         st.title("Cultuur en Jeugdinfrastructuur Dashboard")

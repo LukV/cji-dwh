@@ -8,5 +8,5 @@ def get_db_connection():
     Returns:
         duckdb.DuckDBPyConnection: A connection object to interact with the database.
     """
-    db_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../data/cji.db'))
+    db_path = os.environ.get('DUCKDB_DATABASE') # os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../data/cji.db'))
     return duckdb.connect(db_path)

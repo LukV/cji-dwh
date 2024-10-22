@@ -4,7 +4,7 @@ from . import assets
 from .resources import linked_data_api_resource, database_resource
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
-query_file_path = os.path.join(script_dir, "../../queries/all_infras.sparql")
+query_file_path = os.path.join(script_dir, "../queries/all_infras.sparql")
 with open(query_file_path, encoding="utf-8") as qf:
     all_infras_query = qf.read()
 
