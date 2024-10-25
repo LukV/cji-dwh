@@ -23,7 +23,7 @@ services:
     volumes:
       - ./data:/data
     env_file:
-      - ./api/.env.docker
+      - ./api/src/.env.docker
 
   streamlit:
     build:

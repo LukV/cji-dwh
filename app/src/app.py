@@ -1,5 +1,6 @@
 import re
 import os
+from dotenv import load_dotenv
 import streamlit as st
 import pandas as pd
 import requests
@@ -8,8 +9,11 @@ from pyproj import Transformer
 import folium
 from folium.plugins import MarkerCluster
 
+# Attempt to load environment variables from .env if it exists
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '.env'), override=True)
+
 # Constants
-API_BASE_URL = os.getenv("API_BASE_URL", "http://localhost:8000/api/infras")
+API_BASE_URL = os.getenv("API_BASE_URL")
 PAGE_LENGTH = 20000
 MAX_DISPLAY_RECORDS = 1000
 

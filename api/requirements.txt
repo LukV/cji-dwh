@@ -1,5 +1,6 @@
 duckdb
 requests
+python-dotenv
 fastapi==0.115.2
 starlette==0.40.0
 uvicorn
