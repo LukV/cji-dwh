@@ -22,7 +22,7 @@ def get_infras(limit: int = 10, offset: int = 0, filters: Optional[dict] = None,
         query += " WHERE " + " AND ".join(filter_clauses)
 
     # Validate and sanitize sort_by and sort_order
-    allowed_sort_columns = ["id", "location_name", "city", "source_system"]  # Define allowed columns
+    allowed_sort_columns = ["id", "location_name", "city", "source_system"]
     if sort_by not in allowed_sort_columns:
         sort_by = "id"
 

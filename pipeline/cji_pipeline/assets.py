@@ -35,7 +35,7 @@ def raw_infras_data(context: OpExecutionContext):
     required_resource_keys={"s3"},
     ins={"raw_infras_data": AssetIn()},
 )
-def raw_infras_data_s3(context: OpExecutionContext, raw_infras_data):
+def raw_infras_data_s3(context: OpExecutionContext, raw_infras_data): # pylint: disable=W0621
     """
     Uploads the raw infrastructure Parquet data to S3.
     """
@@ -63,7 +63,7 @@ def raw_infras_data_s3(context: OpExecutionContext, raw_infras_data):
     required_resource_keys={"s3", "duckdb"},
     ins={"raw_infras_data": AssetIn()},
 )
-def all_infras(context: OpExecutionContext, raw_infras_data):
+def all_infras(context: OpExecutionContext, raw_infras_data): # pylint: disable=W0621
     """
     Processes the infrastructure data using DuckDB, reading from S3.
     """
