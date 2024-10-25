@@ -7,10 +7,8 @@ services:
       dockerfile: Dockerfile
     ports:
       - "3000:3000"
-    volumes:
-      - ./data:/data
     env_file:
-      - ./pipeline/.env.docker
+      - ./pipeline/.env
     environment:
       - DAGSTER_HOME=/opt/dagster
 
@@ -20,10 +18,8 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8000:8000"
-    volumes:
-      - ./data:/data
     env_file:
-      - ./api/src/.env.docker
+      - ./api/src/.env
 
   streamlit:
     build:

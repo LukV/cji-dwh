@@ -8,3 +8,4 @@ polars
 authlib
 httpx
 titlecase==2.4.1
+import boto3
