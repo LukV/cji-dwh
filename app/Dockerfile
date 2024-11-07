@@ -3,7 +3,7 @@ FROM python:3.11.7-slim
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1
-ENV API_KEY=01JC3T26KNVYFSXXW7R38B74GA
+ENV API_KEY=[YOURKEY]
 
 # Set the working directory
 WORKDIR /app
