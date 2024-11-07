@@ -75,6 +75,14 @@ class CacheManager:
                 self.load_data_into_cache()
             return self._cached_data
 
+    def clear_cache(self):
+        """
+        Clear the cached data.
+        """
+        with self._lock:
+            self._cached_data = None
+            self._cached_data_last_modified = None
+
     def create_duckdb_connection(self):
         """
         Create a DuckDB connection with the cached data registered.

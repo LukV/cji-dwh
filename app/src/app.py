@@ -14,6 +14,7 @@ load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '.env'), overrid
 
 # Constants
 API_BASE_URL = os.getenv("API_BASE_URL")
+API_KEY = os.getenv("API_KEY")
 PAGE_LENGTH = 20000
 MAX_DISPLAY_RECORDS = 1000
 
@@ -31,7 +32,16 @@ def fetch_data(limit=10, offset=0, filters=None, sort_by="location_name", sort_o
     }
     if filters:
         params["filters"] = filters
-    response = requests.get(API_BASE_URL, params=params, timeout=None)
+    
+    headers = {
+        "accept": "application/json",
+        "api-key": API_KEY
+    }
+
+    print(API_KEY)
+    
+    response = requests.get(API_BASE_URL, params=params, headers=headers, timeout=None)
+
     if response.status_code == 200:
         return response.json()
     else:
@@ -95,7 +105,22 @@ def display_map_view(df):
 
     # Iterate over filtered data to add points and polygons to the map
     for _, item in df_map.iterrows():
-        location_name = item["Locatienaam"]
+        location_name = item["Locatienaam"] if pd.notna(item["Locatienaam"]) else "Onbekend"
+        location_type = item["Locatietype"] if pd.notna(item["Locatietype"]) else "Onbekend"
+        street = item["Straat"] if pd.notna(item["Straat"]) else "--"
+        house_number = item["Huisnummer"] if pd.notna(item["Huisnummer"]) else "--"
+        postal_code = item["Postcode"] if pd.notna(item["Postcode"]) else "--"
+        city = item["Gemeente"] if pd.notna(item["Gemeente"]) else "--"
+        source_system = item["Bronsysteem"] if pd.notna(item["Bronsysteem"]) else "Onbekend"
+
+
+        # Create popup content
+        popup_content = f"""
+        <b>{location_name}</b><br>
+        Type: {location_type}<br>
+        Adres: {street} {house_number}, {postal_code} {city}<br>
+        Bron: {source_system}
+        """
 
         # Handle GML polygons
         if pd.notna(item["gml"]):
@@ -112,7 +137,7 @@ def display_map_view(df):
                     weight=1,
                     fill=True,
                     fill_opacity=0.5,
-                    popup=location_name
+                    popup=folium.Popup(popup_content, max_width=300)
                 ).add_to(m)
 
         # Handle point coordinates
@@ -124,7 +149,7 @@ def display_map_view(df):
 
                 folium.Marker(
                     location=[lat, lon],
-                    popup=location_name,
+                    popup=folium.Popup(popup_content, max_width=300),
                     icon=folium.Icon(icon="info-sign", icon_size=(20, 20))
                 ).add_to(marker_cluster)
 

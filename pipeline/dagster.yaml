@@ -1,0 +1,11 @@
+telemetry:
+  enabled: false
+python_logs:
+  python_log_level: DEBUG
+  managed_python_loggers:
+    - dagster
+    - my_custom_logger
+  dagster_handler_config:
+    formatters:
+      default:
+        format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'

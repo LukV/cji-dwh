@@ -2,6 +2,7 @@ import os
 from contextlib import asynccontextmanager
 from dotenv import load_dotenv
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from .routers import infrastructure
 from .db.database import cache_manager
 
@@ -20,6 +21,15 @@ app = FastAPI(
         collected from open data sources managed by the Flemish government.",
     version="1.0.0",
     lifespan=lifespan
+)
+
+# Configure CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["https://cji.dataframeone.com", "https://test.cji.dcjm.be/"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 app.include_router(infrastructure.router, prefix="/api", tags=["infrastructures"])

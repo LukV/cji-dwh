@@ -27,6 +27,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the rest of the application code
 COPY . .
 
+# Copy dagster.yaml into DAGSTER_HOME
+COPY dagster.yaml $DAGSTER_HOME/dagster.yaml
+
 # Expose ports for the webserver and gRPC
 EXPOSE 3000 4000
 
