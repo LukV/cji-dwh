@@ -1,7 +1,9 @@
 # Ignore Python virtual environments
 .env/
+*.env.*
 *.env
 *.venv/
+.env.docker
 
 # Ignore Python cache files
 __pycache__/

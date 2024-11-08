@@ -1,12 +1,10 @@
-import os
-import duckdb
+from .cache_manager import CacheManager
+
+# Create a single instance of CacheManager for the application
+cache_manager = CacheManager()
 
 def get_db_connection():
     """
-    Establish a connection to the DuckDB database.
-
-    Returns:
-        duckdb.DuckDBPyConnection: A connection object to interact with the database.
+    Get a DuckDB connection with the cached data registered.
     """
-    db_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../data/cji.db'))
-    return duckdb.connect(db_path)
+    return cache_manager.create_duckdb_connection()

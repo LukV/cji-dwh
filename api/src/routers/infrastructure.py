@@ -1,7 +1,11 @@
+import os
 from typing import Optional
-from fastapi import APIRouter, HTTPException, Query, status
-from ..db import crud
+from fastapi import APIRouter, HTTPException, Header, Query, status
+from fastapi.params import Depends
+from ..db import crud, cache_manager
 from ..schemas.infrastructure import InfraList, InfraDetail, InfraBase
+
+cache_manager = cache_manager.CacheManager()
 
 router = APIRouter()
 
@@ -10,7 +14,16 @@ ALL_COLS = ["id", "location_name", "location_type_uri", "location_type_label", "
             "source_uri", "adresregister_uri", "source_system", "identifier", "localid", 
             "namespace", "point", "gml"]
 
-@router.get("/infras", response_model=InfraList)
+def verify_api_key(api_key: str = Header(...)):
+    """Poor man's authentication method."""
+    stored_key = os.environ.get('API_KEY')
+    if api_key != stored_key:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid API Key"
+        )
+
+@router.get("/infras", response_model=InfraList, dependencies=[Depends(verify_api_key)])
 def read_infras(
         limit: int = Query(10, ge=1, description="The number of records to retrieve"),
         offset: int = Query(0, ge=0, description="The number of records to skip \
@@ -64,7 +77,7 @@ def read_infras(
 
 
 
-@router.get("/infras/{identifier}", response_model=InfraDetail)
+@router.get("/infras/{identifier}", response_model=InfraDetail, dependencies=[Depends(verify_api_key)])
 def read_infra(identifier: str):
     """
     Retrieve the details of a specific infrastructure record by its identifier.
@@ -97,4 +110,18 @@ def read_infra(identifier: str):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"An unexpected error occurred while retrieving \
                     the infrastructure record with id '{identifier}'."
+        ) from e
+
+@router.post("/cache/clear", status_code=status.HTTP_200_OK, dependencies=[Depends(verify_api_key)])
+def clear_cache():
+    """
+    Clear the cache for infrastructure data.
+    """
+    try:
+        cache_manager.clear_cache()
+        return {"detail": "Cache cleared successfully."}
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An unexpected error occurred while clearing the cache."
         ) from e

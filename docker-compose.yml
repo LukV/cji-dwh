@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  dagster:
+    build:
+      context: ./pipeline
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./pipeline/.env
+    environment:
+      - DAGSTER_HOME=/opt/dagster
+
+  fastapi:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./api/src/.env
+
+  streamlit:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    ports:
+      - "8501:8501"
+    environment:
+      - API_BASE_URL=http://fastapi:8000/api/infras
+

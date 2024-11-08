@@ -1,23 +1,29 @@
+import re
+import os
+from dotenv import load_dotenv
 import streamlit as st
 import pandas as pd
-import re
 import requests
 from streamlit_folium import st_folium
 from pyproj import Transformer
 import folium
 from folium.plugins import MarkerCluster
 
+# Attempt to load environment variables from .env if it exists
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '.env'), override=True)
+
 # Constants
-API_BASE_URL = "http://localhost:8000/api/infras"
+API_BASE_URL = os.getenv("API_BASE_URL")
+API_KEY = os.getenv("API_KEY")
 PAGE_LENGTH = 20000
 MAX_DISPLAY_RECORDS = 1000
 
 # Set the wide layout as default
 st.set_page_config(layout="wide")
 
-# Function to fetch data from the API
 @st.cache_data
 def fetch_data(limit=10, offset=0, filters=None, sort_by="location_name", sort_order="asc"):
+    """Fetch data from the API"""
     params = {
         "limit": limit,
         "offset": offset,
@@ -26,19 +32,32 @@ def fetch_data(limit=10, offset=0, filters=None, sort_by="location_name", sort_o
     }
     if filters:
         params["filters"] = filters
-    response = requests.get(API_BASE_URL, params=params, timeout=None)
+    
+    headers = {
+        "accept": "application/json",
+        "api-key": API_KEY
+    }
+
+    print(API_KEY)
+    
+    response = requests.get(API_BASE_URL, params=params, headers=headers, timeout=None)
+
     if response.status_code == 200:
         return response.json()
     else:
         st.error(f"Failed to fetch data: {response.status_code}")
         return None
 
-# Function to filter the DataFrame based on sidebar filters
+
 def apply_filters(df):
+    """Filter the DataFrame based on sidebar filters"""
     location_name_filter = st.sidebar.text_input("Zoek op naam")
-    source_system_filter = st.sidebar.multiselect("Filter op bron", options=df["Bronsysteem"].dropna().unique().tolist())
-    location_type_filter = st.sidebar.multiselect("Filter op type", options=df["Locatietype"].dropna().unique().tolist())
-    city_filter = st.sidebar.multiselect("Filter op gemeente", options=df["Gemeente"].dropna().unique().tolist())
+    source_system_filter = st.sidebar.multiselect("Filter op bron",
+                                        options=df["Bronsysteem"].dropna().unique().tolist())
+    location_type_filter = st.sidebar.multiselect("Filter op type",
+                                        options=df["Locatietype"].dropna().unique().tolist())
+    city_filter = st.sidebar.multiselect("Filter op gemeente",
+                                        options=df["Gemeente"].dropna().unique().tolist())
 
     if location_name_filter:
         df = df[df["Locatienaam"].str.contains(location_name_filter, case=False, na=False)]
@@ -51,12 +70,12 @@ def apply_filters(df):
 
     return df
 
-# Function to create the table view
 def display_table_view(df):
+    """Create the table view."""
     st.write(df)
 
-# Function to create the chart view
 def display_chart_view(df):
+    """Create the chart view."""
     if not df.empty:
         col1, col2 = st.columns(2)
 
@@ -72,8 +91,8 @@ def display_chart_view(df):
     else:
         st.write("Geen gegevens beschikbaar om de grafieken weer te geven.")
 
-# Function to create the map view
 def display_map_view(df):
+    """Create the map view."""
     # Limit the number of records to a maximum of 500 for map visualization
     df_map = df.head(MAX_DISPLAY_RECORDS)
 
@@ -86,14 +105,30 @@ def display_map_view(df):
 
     # Iterate over filtered data to add points and polygons to the map
     for _, item in df_map.iterrows():
-        location_name = item["Locatienaam"]
+        location_name = item["Locatienaam"] if pd.notna(item["Locatienaam"]) else "Onbekend"
+        location_type = item["Locatietype"] if pd.notna(item["Locatietype"]) else "Onbekend"
+        street = item["Straat"] if pd.notna(item["Straat"]) else "--"
+        house_number = item["Huisnummer"] if pd.notna(item["Huisnummer"]) else "--"
+        postal_code = item["Postcode"] if pd.notna(item["Postcode"]) else "--"
+        city = item["Gemeente"] if pd.notna(item["Gemeente"]) else "--"
+        source_system = item["Bronsysteem"] if pd.notna(item["Bronsysteem"]) else "Onbekend"
+
+
+        # Create popup content
+        popup_content = f"""
+        <b>{location_name}</b><br>
+        Type: {location_type}<br>
+        Adres: {street} {house_number}, {postal_code} {city}<br>
+        Bron: {source_system}
+        """
 
         # Handle GML polygons
         if pd.notna(item["gml"]):
             match = re.search(r"<gml:posList>([-\d. ]+)</gml:posList>", item["gml"])
             if match:
                 coord_list = list(map(float, match.group(1).split()))
-                coordinates = [(coord_list[i], coord_list[i + 1]) for i in range(0, len(coord_list), 2)]
+                coordinates = [(coord_list[i], coord_list[i + 1]) \
+                               for i in range(0, len(coord_list), 2)]
                 converted_coords = [transformer.transform(x, y) for x, y in coordinates]
 
                 folium.Polygon(
@@ -102,7 +137,7 @@ def display_map_view(df):
                     weight=1,
                     fill=True,
                     fill_opacity=0.5,
-                    popup=location_name
+                    popup=folium.Popup(popup_content, max_width=300)
                 ).add_to(m)
 
         # Handle point coordinates
@@ -114,18 +149,18 @@ def display_map_view(df):
 
                 folium.Marker(
                     location=[lat, lon],
-                    popup=location_name,
+                    popup=folium.Popup(popup_content, max_width=300),
                     icon=folium.Icon(icon="info-sign", icon_size=(20, 20))
                 ).add_to(marker_cluster)
 
     # Display the map in Streamlit
     st_folium(m, width=1600, height=600)
 
-    #
+    # Display maximum number of results on map.
     st.write(f"Maximum aantal resultaten op kaart: {MAX_DISPLAY_RECORDS}")
 
-# Main application logic
 def main():
+    """Main application logic."""
     # Fetch data
     data = fetch_data(limit=PAGE_LENGTH, offset=0, sort_by="location_name", sort_order="asc")
 
@@ -151,7 +186,8 @@ def main():
         df_filtered = apply_filters(df)
 
         # Sidebar view selection
-        view = st.sidebar.radio("Kies weergave", ["Tabelweergave", "Kaartweergave", "Grafiekenweergave"])
+        view = st.sidebar.radio("Kies weergave",
+                                ["Tabelweergave", "Kaartweergave", "Grafiekenweergave"])
 
         # Streamlit UI Title and Result Summary
         st.title("Cultuur en Jeugdinfrastructuur Dashboard")
