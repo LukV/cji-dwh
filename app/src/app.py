@@ -37,8 +37,6 @@ def fetch_data(limit=10, offset=0, filters=None, sort_by="location_name", sort_o
         "accept": "application/json",
         "api-key": API_KEY
     }
-
-    print(API_KEY)
     
     response = requests.get(API_BASE_URL, params=params, headers=headers, timeout=None)
 
@@ -72,7 +70,8 @@ def apply_filters(df):
 
 def display_table_view(df):
     """Create the table view."""
-    st.write(df)
+    df = df.fillna('').astype(str)
+    st.dataframe(df, use_container_width=True, height=600)
 
 def display_chart_view(df):
     """Create the chart view."""

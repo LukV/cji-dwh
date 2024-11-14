@@ -11,6 +11,8 @@ services:
       - ./pipeline/.env
     environment:
       - DAGSTER_HOME=/opt/dagster
+    networks:
+      - backend-network
 
   fastapi:
     build:
@@ -20,6 +22,13 @@ services:
       - "8000:8000"
     env_file:
       - ./api/src/.env
+    networks:
+      - backend-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   streamlit:
     build:
@@ -29,4 +38,11 @@ services:
       - "8501:8501"
     environment:
       - API_BASE_URL=http://fastapi:8000/api/infras
+    depends_on:
+      - fastapi
+    networks:
+      - backend-network
 
+networks:
+  backend-network:
+    driver: bridge

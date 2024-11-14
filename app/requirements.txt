@@ -1,8 +1,8 @@
-requests
-pandas
-streamlit
-streamlit_folium 
-pyproj
-folium
-python-dotenv
+folium==0.17.0
+pandas==2.2.3
+pyproj==3.7.0
+python-dotenv==1.0.1
+requests==2.32.3
+streamlit==1.39.0
+streamlit_folium==0.23.1
 
