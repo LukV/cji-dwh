@@ -167,7 +167,7 @@ def main():
         # Data filtering and cleaning for UI display
         df = pd.DataFrame(data["items"])
         df = df[["location_name", "location_type_label", "street", "house_number", "postal_code",
-                 "city", "source_system", "adresregister_uri", "identifier", "point", "gml"]]
+                 "city", "source_system", "adresregister_uri", "perceel_uri", "identifier", "point", "gml"]]
 
         df.rename(columns={
             "location_name": "Locatienaam",
@@ -178,6 +178,7 @@ def main():
             "city": "Gemeente",
             "source_system": "Bronsysteem",
             "adresregister_uri": "Adresregister URL",
+            "perceel_uri": "Perceel URL",
             "identifier": "Bronsysteem URL"
         }, inplace=True)
 

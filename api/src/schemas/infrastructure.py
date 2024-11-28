@@ -15,6 +15,7 @@ class InfraBase(BaseModel):
     created_by: Optional[str] = None
     source_uri: str
     adresregister_uri: Optional[str] = None
+    perceel_uri: Optional[str] = None
     source_system: Optional[str] = None
     identifier: str
     localid: Optional[str] = None

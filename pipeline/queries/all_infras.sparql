@@ -8,10 +8,12 @@ PREFIX generiek: <https://data.vlaanderen.be/ns/generiek#>
 PREFIX platform: <https://data.uitwisselingsplatform.be/ns/platform#>
 PREFIX locn: <http://www.w3.org/ns/locn#>
 PREFIX gebouw: <https://data.vlaanderen.be/ns/gebouw#>
+PREFIX gebouwenregister: <https://basisregisters.vlaanderen.be/implementatiemodel/gebouwenregister#>
 
 SELECT ?subject ?locationName ?locationType ?thoroughfare ?huisnummer
     ?fullAddress ?postCode ?city ?gml ?point ?bron
     ?infraType ?createdBy ?identifier ?localid ?namespace ?adresregisteruri
+    ?perceeluri
 WHERE {    
     GRAPH <https://data.vlaanderen.be/ns/cultuur-en-jeugd/infrastructuur#all-infrastructures> {
         ?subject 
@@ -22,6 +24,7 @@ WHERE {
             infra:Infrastructuur.type ?locationType .
         
         OPTIONAL { ?subject rdfs:seeAlso ?adresregisteruri . }
+        OPTIONAL { ?subject gebouwenregister:perceel ?perceeluri . }
         OPTIONAL { ?geo locn:point ?point . }
         OPTIONAL { ?geo locn:gml ?gml . }
 

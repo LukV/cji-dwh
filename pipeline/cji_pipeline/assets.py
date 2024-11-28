@@ -105,6 +105,7 @@ def all_infras(context: OpExecutionContext, raw_infras_data): # pylint: disable=
                    createdBy AS created_by,
                    subject AS source_uri,
                    adresregisteruri AS adresregister_uri,
+                   perceeluri AS perceel_uri,
                    CASE
                        WHEN namespace = 'https://kampas.be/id/gebouw/' THEN 'Kampas'
                        WHEN namespace = 'https://erfgoedkaart.be/id/infrastructuur/' THEN 'Erfgoedkaart'
