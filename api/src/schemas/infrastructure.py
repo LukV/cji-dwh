@@ -22,6 +22,8 @@ class InfraBase(BaseModel):
     namespace: Optional[str] = None
     point: Optional[str] = None
     gml: Optional[str] = None
+    geojson: Optional[str] = None
+
 
 class InfraDetail(InfraBase):
     pass
