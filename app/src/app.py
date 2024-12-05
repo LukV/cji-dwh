@@ -1,11 +1,11 @@
 import re
 import os
+import json
 from dotenv import load_dotenv
 import streamlit as st
 import pandas as pd
 import requests
 from streamlit_folium import st_folium
-from pyproj import Transformer
 import folium
 from folium.plugins import MarkerCluster
 
@@ -32,12 +32,12 @@ def fetch_data(limit=10, offset=0, filters=None, sort_by="location_name", sort_o
     }
     if filters:
         params["filters"] = filters
-    
+
     headers = {
         "accept": "application/json",
         "api-key": API_KEY
     }
-    
+
     response = requests.get(API_BASE_URL, params=params, headers=headers, timeout=None)
 
     if response.status_code == 200:
@@ -45,7 +45,6 @@ def fetch_data(limit=10, offset=0, filters=None, sort_by="location_name", sort_o
     else:
         st.error(f"Failed to fetch data: {response.status_code}")
         return None
-
 
 def apply_filters(df):
     """Filter the DataFrame based on sidebar filters"""
@@ -92,17 +91,16 @@ def display_chart_view(df):
 
 def display_map_view(df):
     """Create the map view."""
-    # Limit the number of records to a maximum of 500 for map visualization
+    # Limit the number of records to a maximum of MAX_DISPLAY_RECORDS for map visualization
     df_map = df.head(MAX_DISPLAY_RECORDS)
 
     # Initialize Folium Map centered around Belgium
     map_center = [50.85, 4.35]
     m = folium.Map(location=map_center, zoom_start=8)
 
-    transformer = Transformer.from_crs("EPSG:31370", "EPSG:4326")
     marker_cluster = MarkerCluster().add_to(m)
 
-    # Iterate over filtered data to add points and polygons to the map
+    # Iterate over filtered data to add geometries to the map
     for _, item in df_map.iterrows():
         location_name = item["Locatienaam"] if pd.notna(item["Locatienaam"]) else "Onbekend"
         location_type = item["Locatietype"] if pd.notna(item["Locatietype"]) else "Onbekend"
@@ -112,7 +110,6 @@ def display_map_view(df):
         city = item["Gemeente"] if pd.notna(item["Gemeente"]) else "--"
         source_system = item["Bronsysteem"] if pd.notna(item["Bronsysteem"]) else "Onbekend"
 
-
         # Create popup content
         popup_content = f"""
         <b>{location_name}</b><br>
@@ -121,36 +118,29 @@ def display_map_view(df):
         Bron: {source_system}
         """
 
-        # Handle GML polygons
-        if pd.notna(item["gml"]):
-            match = re.search(r"<gml:posList>([-\d. ]+)</gml:posList>", item["gml"])
-            if match:
-                coord_list = list(map(float, match.group(1).split()))
-                coordinates = [(coord_list[i], coord_list[i + 1]) \
-                               for i in range(0, len(coord_list), 2)]
-                converted_coords = [transformer.transform(x, y) for x, y in coordinates]
-
+        if pd.notna(item['geojson']):
+            geometry = json.loads(item['geojson'])
+            if geometry['type'] == 'Point':
+                lat, lon = geometry['coordinates'][1], geometry['coordinates'][0]
+                folium.Marker(
+                    location=[lat, lon],
+                    popup=folium.Popup(popup_content, max_width=300),
+                    icon=folium.Icon(icon="info-sign", icon_size=(20, 20))
+                ).add_to(marker_cluster)
+            elif geometry['type'] == 'Polygon':
+                # For polygons, the coordinates are a list of rings
+                # Each ring is a list of coordinates (lon, lat)
+                coordinates = geometry['coordinates'][0]  # Assuming single polygon
+                # Flip coordinates to (lat, lon)
+                lat_lon_coords = [(lat, lon) for lon, lat in coordinates]
                 folium.Polygon(
-                    locations=converted_coords,
+                    locations=lat_lon_coords,
                     color='blue',
                     weight=1,
                     fill=True,
                     fill_opacity=0.5,
                     popup=folium.Popup(popup_content, max_width=300)
                 ).add_to(m)
-
-        # Handle point coordinates
-        elif pd.notna(item["point"]):
-            match = re.search(r"<gml:pos>([-\d.]+) ([-\d.]+)</gml:pos>", item["point"])
-            if match:
-                x_coord, y_coord = float(match.group(1)), float(match.group(2))
-                lat, lon = transformer.transform(x_coord, y_coord)
-
-                folium.Marker(
-                    location=[lat, lon],
-                    popup=folium.Popup(popup_content, max_width=300),
-                    icon=folium.Icon(icon="info-sign", icon_size=(20, 20))
-                ).add_to(marker_cluster)
 
     # Display the map in Streamlit
     st_folium(m, width=1600, height=600)
@@ -167,7 +157,7 @@ def main():
         # Data filtering and cleaning for UI display
         df = pd.DataFrame(data["items"])
         df = df[["location_name", "location_type_label", "street", "house_number", "postal_code",
-                 "city", "source_system", "adresregister_uri", "perceel_uri", "identifier", "point", "gml"]]
+                 "city", "source_system", "adresregister_uri", "perceel_uri", "identifier", "geojson"]]
 
         df.rename(columns={
             "location_name": "Locatienaam",

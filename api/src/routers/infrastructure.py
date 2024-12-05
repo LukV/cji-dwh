@@ -12,7 +12,7 @@ router = APIRouter()
 ALL_COLS = ["id", "location_name", "location_type_uri", "location_type_label", "infra_type_uri",
             "street", "house_number", "postal_code", "city", "uwp_sourcd_dp", "created_by",
             "source_uri", "adresregister_uri", "perceel_uri", "source_system", "identifier", "localid", 
-            "namespace", "point", "gml"]
+            "namespace", "point", "gml", "geojson"]
 
 def verify_api_key(api_key: str = Header(...)):
     """Poor man's authentication method."""
