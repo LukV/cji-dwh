@@ -8,6 +8,7 @@ duckdb
 requests
 polars
 authlib
+pyproj
 httpx
 titlecase==2.4.1
 boto3

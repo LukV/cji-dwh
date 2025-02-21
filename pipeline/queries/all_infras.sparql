@@ -11,42 +11,42 @@ PREFIX gebouw: <https://data.vlaanderen.be/ns/gebouw#>
 PREFIX gebouwenregister: <https://basisregisters.vlaanderen.be/implementatiemodel/gebouwenregister#>
 
 SELECT ?subject ?locationName ?locationType ?thoroughfare ?huisnummer
-    ?fullAddress ?postCode ?city ?gml ?point ?bron
-    ?infraType ?createdBy ?identifier ?localid ?namespace ?adresregisteruri
-    ?perceeluri
+       ?fullAddress ?postCode ?city ?gml ?point ?bron
+       ?infraType ?createdBy ?identifier ?localid ?namespace ?adresregisteruri
+       ?perceeluri
 WHERE {    
-    GRAPH <https://data.vlaanderen.be/ns/cultuur-en-jeugd/infrastructuur#all-infrastructures> {
-        ?subject 
-            a ?infraType ;
-            adms:Identifier ?identifierNode ;
-            locn:geometry ?geo ;
-            infra:Infrastructuur.naam ?locationName ;
-            infra:Infrastructuur.type ?locationType .
-        
-        OPTIONAL { ?subject rdfs:seeAlso ?adresregisteruri . }
-        OPTIONAL { ?subject gebouwenregister:perceel ?perceeluri . }
-        OPTIONAL { ?geo locn:point ?point . }
-        OPTIONAL { ?geo locn:gml ?gml . }
+  GRAPH <https://data.vlaanderen.be/ns/cultuur-en-jeugd/infrastructuur#all-infrastructures> {
+    ?subject 
+        a ?infraType ;
+  		adms:Identifier ?identifierNode ;
+        locn:geometry ?geo ;
+        infra:Infrastructuur.naam ?locationName ;
+        infra:Infrastructuur.type ?locationType .
 
-        ?identifierNode 
-            skos:notation ?identifier ;
-            generiek:gestructureerdeIdentificator ?gident ;
-            platform:bron ?bron .
-
-        OPTIONAL { ?identifierNode dct:creator ?createdBy . }
-
-        OPTIONAL {
-            ?subject gebouw:adres ?addressNode .
-            ?addressNode 
-                locn:fullAddress ?fullAddress ;
-                locn:thoroughfare ?thoroughfare ;  
-                locn:locatorDesignator ?huisnummer ; 
-                locn:postCode ?postCode ;
-                locn:postName ?city .
-        }
-
-        ?gident
-            generiek:lokaleIdentificator ?localid ;
-            generiek:naamruimte ?namespace .
+    OPTIONAL { ?subject rdfs:seeAlso ?adresregisteruri . }
+    OPTIONAL { ?subject gebouwenregister:perceel ?perceeluri . }
+    OPTIONAL { ?geo locn:point ?point . }
+    OPTIONAL { ?geo locn:gml ?gml . }
+    
+    ?identifierNode 
+        skos:notation ?identifier ;
+        generiek:gestructureerdeIdentificator ?gident ;
+        platform:bron ?bron .
+    
+    OPTIONAL { ?identifierNode dct:creator ?createdBy . }
+    
+    OPTIONAL {
+      ?subject gebouw:adres ?addressNode .
+      OPTIONAL { ?addressNode locn:fullAddress ?fullAddress . }
+      OPTIONAL { ?addressNode locn:thoroughfare ?thoroughfare . }
+      OPTIONAL { ?addressNode locn:locatorDesignator ?huisnummer . }
+      OPTIONAL { ?addressNode locn:postCode ?postCode . }
+      OPTIONAL { ?addressNode locn:postName ?city . }
     }
+    
+    ?gident
+        generiek:lokaleIdentificator ?localid ;
+        generiek:naamruimte ?namespace .
+    
+  }
 }

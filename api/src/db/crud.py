@@ -3,6 +3,19 @@
 from typing import List, Optional, Tuple
 from .database import get_db_connection
 
+def _parse_filters(filter_string: str) -> dict:
+    """
+    Parse a filter string (e.g., "key1=value1 AND key2=value2")
+    into a dictionary {key1: value1, key2: value2}.
+    """
+    filters = {}
+    clauses = filter_string.split(" AND ")
+    for clause in clauses:
+        if "=" in clause:
+            key, value = clause.split("=", 1)
+            filters[key.strip()] = value.strip()
+    return filters
+
 def get_infras(limit: int = 10, offset: int = 0, filters: Optional[dict] = None,
                sort_by: str = "id", sort_order: str = "asc") -> List[Tuple]:
     """
@@ -14,12 +27,9 @@ def get_infras(limit: int = 10, offset: int = 0, filters: Optional[dict] = None,
     params = []
 
     # Add filtering to the query if filters are provided
+    # Parse filters if provided
     if filters:
-        filter_clauses = []
-        for key, value in filters.items():
-            filter_clauses.append(f"{key} = ?")
-            params.append(value)
-        query += " WHERE " + " AND ".join(filter_clauses)
+        query += f" WHERE {filters} "
 
     # Validate and sanitize sort_by and sort_order
     allowed_sort_columns = ["id", "location_name", "city", "source_system"]
